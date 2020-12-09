@@ -22,13 +22,17 @@ a {
 
 #fucking-world {
     position: absolute;
-    width:100%;
-    height:100%;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    background:linear-gradient(-30deg, aqua, black);
+    background: linear-gradient(-5deg, black, gray, darkblue, black);
+    animation-name: horizon;
+    animation-fill-mode: forwards;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
 }
 
 #canvas {
-    width:100%;
-    height:100%;
+    width: 100%;
+    height: 100%;
 }
