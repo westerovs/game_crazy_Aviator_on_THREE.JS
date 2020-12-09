@@ -1,10 +1,21 @@
 'use strict'
-
 import * as THREE from '../lib/three.js'
+/*
+    ИЕРАРХИЯ ОТОБРАЖЕНИЯ:
 
-
-// const canvas = document.getElementById('canvas')
-const world = document.getElementById('fucking-world')
+    __________РЕНДЕРЕР__________
+    ↓                          ↓
+ камера                   ___сцена___
+                          ↓         ↓
+       [источники света...]     ___[меши...]___
+                                ↓             ↓
+                        геометрия             ______материал______
+                                              ↓         ↓        ↓
+                                       текстуры       цвета      правила отображения
+*/
+const world       = document.getElementById('fucking-world')
+const worldWidth  = world.offsetWidth
+const worldHeight = world.offsetHeight
 
 const COLORS = {
     red      : 0xf25346,
@@ -15,93 +26,50 @@ const COLORS = {
     blue     : 0x68c3c0,
 };
 
-let scene,
-    camera,
-    fieldOfView,
-    aspectRatio,
-    nearPlane,
-    farPlane,
-    HEIGHT,
-    WIDTH,
-    renderer,
-    container;
+// ----------> 1 RENDER
+const renderer = new THREE.WebGLRenderer({
+    // Разрещить прозрачноть для сцены
+    // чтобы видеть фон из CSS
+    alpha: true,
 
-window.addEventListener('load', init, false)
+    // Активируем антиалиасинг. Это может повлечь проблемы с производительностью,
+    // но наш проект основан на низкополигональных моделях, поэтому должно зайти как по маслу.
+    antialias: true
+});
 
-function init() {
-    // настройка сцены, камеры и рендера
-    createScene();
 
-    // добавление освещения сцены
-    createLights();
+// ----------> 2 CAMERA
+const fieldOfView = 60;
+const aspectRatio = worldWidth / worldHeight;
+const nearPlane   = 1;
+const farPlane    = 10000;
+const camera      = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane)
 
-    // добавление объектов на сцену
-    createSea();
-    // createPlane();
-    // createSky();
 
-    // запускаем цикл для обновления объектов на сцене
-    // и перерасчет сцены в каждом кадре
-    loop();
-}
-
+// ----------> 3 SCENE
+const scene = new THREE.Scene()
 
 function createScene() {
     console.log('--- createScene ---')
 
-    // Получаем ширину и высоту рабочей области
-    // используем их для установки размера и пропорций камеры
-    // а также для размера финального рендера
-    WIDTH  = world.offsetWidth
-    HEIGHT = world.offsetHeight
-
-
-    // Создание сцены
-    scene = new THREE.Scene()
-
     // Добавить эффект тумана на нашу сцену
     // его цвет мы возьмем из наших таблиц стилей, а не из переменной
     scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
-
-    // Создадим камеру
-    aspectRatio = WIDTH / HEIGHT;
-    fieldOfView = 60;
-    nearPlane   = 1;
-    farPlane    = 10000;
-    camera      = new THREE.PerspectiveCamera(
-        fieldOfView,
-        aspectRatio,
-        nearPlane,
-        farPlane
-    );
 
     // Зададим позицию камере в пространстве
     camera.position.x = 0;
     camera.position.z = 200;
     camera.position.y = 100;
 
-    // Создадим рендер
-    renderer = new THREE.WebGLRenderer({
-        // Разрещить прозрачноть для сцены
-        // чтобы видеть фон из CSS
-        alpha: true,
-
-        // Активируем антиалиасинг. Это может повлечь проблемы с производительностью,
-        // но наш проект основан на низкополигональных моделях, поэтому должно зайти как по маслу.
-        antialias: true
-    });
-
     // Задаем размер рендеру,
     // в нашем случае это размер рабочей области
-    renderer.setSize(WIDTH, HEIGHT);
+    renderer.setSize(worldWidth, worldHeight);
 
     // Включаем рендер теней
     renderer.shadowMap.enabled = true;
 
-    // Обратимся к DOM-элементу,
-    // который создали в HTML, для рендера в него сцены.
-    container = world
-    container.appendChild(renderer.domElement); // создать canvas в fucking-world
+    // создать canvas в fucking-world и рендера в него сцены.
+    world.appendChild(renderer.domElement);
 
     // Отлавливаем событие изменения размера экрана,
     // в котором мы запустим функцию handleWindowResize(), чтобы обновить камеру и рендер.
@@ -109,23 +77,72 @@ function createScene() {
 }
 
 
-function handleWindowResize() {
-    console.log('+++ WindowResize +++')
-    // обновим высоту и ширину камеры и рендера
-    // Так как размер окна может меняться пользователем,
-    // нам необходимо обновлять сцену, рендер и камеру после кажого изменения размера:
-    WIDTH  = world.offsetWidth
-    HEIGHT = world.offsetHeight
-    renderer.setSize(WIDTH, HEIGHT);
-    camera.aspect = WIDTH / HEIGHT;
-    camera.updateProjectionMatrix();
+// ----------> 4 меш
+const Sea = function () {
+    // Создадим геометрию цилиндра
+    // верхний радиус, нижний радиус, высота, количество сегментов по окружности, количество сегментов по вертикали
+    const geom = new THREE.CylinderGeometry(600, 600, 800, 40, 10);
+
+    // повернем наш объект по оси x
+    geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+
+    // создадим материал для нашего объекта
+    const mat = new THREE.MeshPhongMaterial({
+        color      : COLORS.blue,
+        transparent: true,
+        opacity    : 0.6,
+        shading    : THREE.FlatShading,
+    });
+
+    // Для создания объекта в Three.js, нам необходимо создать меш,
+    // который является совокупностью созданной ранее геометрии и материала
+    this.mesh = new THREE.Mesh(geom, mat);
+
+    // Разрешим морю отбрасывать тени
+    this.mesh.receiveShadow = true;
+}
+let sea;
+// Теперь мы инициализируем наше море и добавим его на сцену:
+function createSea() {
+    sea = new Sea();
+
+    // Подвинем объект в нижнюю часть нашей сцены
+    sea.mesh.position.y = -600;
+
+    // Добавим море меш на сцену
+    scene.add(sea.mesh);
 }
 
+// ----------> 5 управление
+function startGame() {
+    // настройка сцены, камеры и рендера
+    createScene();
+    // добавление освещения сцены
+    createLights();
+    // добавление мешей на сцену
+    createSea();
+    // createPlane();
+    // createSky();
 
-// ----------------------------------------------------------
-// --------------------- ОСВЕЩЕНИЕ СЦЕНЫ --------------------
-// ----------------------------------------------------------
-let hemisphereLight, shadowLight;
+    // цикл для обновления объектов
+    loop();
+}
+
+function loop() {
+    // Вращаем пропеллер, море и небо
+    sea.mesh.rotation.z += .005;
+    // sky.mesh.rotation.z += .01;
+    // airplane.propeller.rotation.x += 0.3;
+
+    // рендерим сцену
+    renderer.render(scene, camera);
+
+    requestAnimationFrame(loop);
+}
+
+// ----------------- вспомогательные функции -----------------
+let hemisphereLight = null
+let shadowLight     = null
 
 function createLights() {
     console.log('--- createLights ---')
@@ -152,7 +169,6 @@ function createLights() {
     shadowLight.shadow.camera.near   = 1;
     shadowLight.shadow.camera.far    = 1000;
 
-
     // Задайте разрешение теней,
     // но имейте ввиду, чем оно больше, тем ниже производительность.
     shadowLight.shadow.mapSize.width  = 2048;
@@ -163,60 +179,15 @@ function createLights() {
     scene.add(shadowLight);
 }
 
-
-// ----------------------------------------------------------
-// --------------------- СОЗДАНИЕ МОРЯ ----------------------
-// ----------------------------------------------------------
-// Сперва определим JS-объект нашего моря
-const Sea = function () {
-
-    // Создадим геометрию цилиндра
-    // со следующими параметрами:
-    // верхний радиус, нижний радиус, высота, количество сегментов по окружности, количество сегментов по вертикали
-    var geom = new THREE.CylinderGeometry(600, 600, 800, 40, 10);
-
-    // повернем наш объект по оси x
-    geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-
-    // создадим материал для нашего объекта
-    var mat = new THREE.MeshPhongMaterial({
-        color      : COLORS.blue,
-        transparent: true,
-        opacity    : 0.6,
-        shading    : THREE.FlatShading,
-    });
-
-    // Для создания объекта в Three.js, нам необходимо создать меш,
-    // который является совокупностью созданной ранее геометрии и материала
-    this.mesh = new THREE.Mesh(geom, mat);
-
-    // Разрешим морю отбрасывать тени
-    this.mesh.receiveShadow = true;
+// перерисовывает canvas при измении размера окна, т.к размер окна может меняться
+function handleWindowResize() {
+    console.log('+++ WindowResize +++')
+    const worldWidthResize  = world.offsetWidth
+    const worldHeightResize = world.offsetHeight
+    renderer.setSize(worldWidthResize, worldHeightResize);
+    camera.aspect = worldWidthResize / worldHeightResize;
+    camera.updateProjectionMatrix();
 }
 
-// Теперь мы инициализируем наше море и добавим его на сцену:
-
-var sea;
-
-function createSea() {
-    sea = new Sea();
-
-    // Подвинем объект в нижнюю часть нашей сцены
-    sea.mesh.position.y = -600;
-
-    // Добавим финальный меш на сцену
-    scene.add(sea.mesh);
-}
-
-function loop(){
-    // Вращаем пропеллер, море и небо
-    // airplane.propeller.rotation.x += 0.3;
-    sea.mesh.rotation.z += .005;
-    // sky.mesh.rotation.z += .01;
-
-    // рендерим сцену
-    renderer.render(scene, camera);
-
-    // снова вызываем фунцию loop
-    requestAnimationFrame(loop);
-}
+// запуск !
+window.addEventListener('load', startGame)
