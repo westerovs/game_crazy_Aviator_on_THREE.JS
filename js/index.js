@@ -50,6 +50,7 @@ const camera      = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPl
 const scene = new THREE.Scene()
 const sky = new Sky(scene)
 
+// Сцена, камера и рендеринг
 function createScene() {
     console.log('--- createScene ---')
 
