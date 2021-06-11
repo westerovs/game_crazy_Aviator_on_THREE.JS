@@ -1,9 +1,7 @@
 'use strict'
 import * as THREE from '../lib/three.js';
-import FuckingSky from './sky.js'
-
-const fuckingSky = new FuckingSky('Alexander!')
-fuckingSky.init()
+// import FuckingSky from './sky.js'
+// const fuckingSky = new FuckingSky()
 
 /*
     ИЕРАРХИЯ ОТОБРАЖЕНИЯ:
@@ -128,6 +126,7 @@ function createSea() {
     // Добавим море меш на сцену
     scene.add(sea.mesh);
 }
+
 
 // ------------- облака
 const Cloud = function () {
