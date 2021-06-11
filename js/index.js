@@ -1,7 +1,4 @@
-'use strict'
 import * as THREE from '../lib/three.js';
-// import FuckingSky from './sky.js'
-// const fuckingSky = new FuckingSky()
 
 /*
     ИЕРАРХИЯ ОТОБРАЖЕНИЯ:
@@ -86,7 +83,6 @@ function createScene() {
     window.addEventListener('resize', handleWindowResize, false);
 }
 
-
 // ----------> 4 меш
 
 // ------------- море
@@ -170,67 +166,72 @@ const Cloud = function () {
 }
 
 // Создадим объект неба
-const Sky = function () {
-    // создадим пустой контейнер
-    this.mesh = new THREE.Object3D();
-
-    // выберем количество облаков, которые разместим на небе
-    this.nClouds = 20;
-
-    // Чтобы распределить облака равномерно,
-    // нам необходимо разместить их с одинаковым промежутком друг от друга,
-    // для этого мы рассчитаем величину угла для каждого следующего облака
-    const stepAngle = Math.PI * 2 / this.nClouds;
-
-    // создадим облака для неба в цикле
-    for (let i = 0; i < this.nClouds; i++) {
-        const c = new Cloud();
-
-        // зададим угол поворота и позицию для каждого облака
-        // для этого мы используем немного тригонометрии
-        const a = stepAngle * i; // это конечный угол поворота облака
-        const h = 750 + Math.random() * 200; // это расстояние между центром оси и облаком
-
-        // Тригонометрия!!! Я надеюсь вы помните что учили в школе :)
-        // если же нет:
-        // мы просто конвертируем полярные координаты (угол, расстояние) в Декартовые координаты (x, y)
-        c.mesh.position.y = Math.sin(a) * h;
-        c.mesh.position.x = Math.cos(a) * h;
-
-        // поворачиваем облако относительно его позиции
-        c.mesh.rotation.z = a + Math.PI / 2;
-
-        // для лучшего результата, мы разместим облака
-        // на случайной глубине на нашей сцене
-        c.mesh.position.z = -400 - Math.random() * 400;
-
-        // также установим случайный размер для каждого облака
-        const s = 1 + Math.random() * 2;
-        c.mesh.scale.set(s, s, s);
-
-        // не забудьте добавить каждое облако в наш контейнер
-        this.mesh.add(c.mesh);
+class Sky {
+    constructor(props) {
+        // создадим пустой контейнер
+        this.mesh = new THREE.Object3D();
+        
+        // выберем количество облаков, которые разместим на небе
+        this.nClouds = 20;
+        
+        // Чтобы распределить облака равномерно,
+        // нам необходимо разместить их с одинаковым промежутком друг от друга,
+        // для этого мы рассчитаем величину угла для каждого следующего облака
+        this.stepAngle = Math.PI * 2 / this.nClouds;
+        
+        // создадим облака для неба в цикле
+        for (let i = 0; i < this.nClouds; i++) {
+            const c = new Cloud();
+            
+            // зададим угол поворота и позицию для каждого облака
+            // для этого мы используем немного тригонометрии
+            const a = this.stepAngle * i; // это конечный угол поворота облака
+            const h = 750 + Math.random() * 200; // это расстояние между центром оси и облаком
+            
+            // Тригонометрия!!! Я надеюсь вы помните что учили в школе :)
+            // если же нет:
+            // мы просто конвертируем полярные координаты (угол, расстояние) в Декартовые координаты (x, y)
+            c.mesh.position.y = Math.sin(a) * h;
+            c.mesh.position.x = Math.cos(a) * h;
+            
+            // поворачиваем облако относительно его позиции
+            c.mesh.rotation.z = a + Math.PI / 2;
+            
+            // для лучшего результата, мы разместим облака
+            // на случайной глубине на нашей сцене
+            c.mesh.position.z = -400 - Math.random() * 400;
+            
+            // также установим случайный размер для каждого облака
+            const s = 1 + Math.random() * 2;
+            c.mesh.scale.set(s, s, s);
+            
+            // не забудьте добавить каждое облако в наш контейнер
+            this.mesh.add(c.mesh);
+        }
+    }
+    
+    createSky = () => {
+        console.log('create Sky')
+        this.mesh.position.y = -600;
+        scene.add(this.mesh);
     }
 }
-let sky;
 
-function createSky() {
-    sky = new Sky();
+const sky = new Sky()
 
-    sky.mesh.position.y = -600;
-    scene.add(sky.mesh);
-}
 
 // ----------> 5 управление
-function startGame() {
+function init() {
     // настройка сцены, камеры и рендера
     createScene();
     // добавление освещения сцены
     createLights();
+    
     // добавление мешей на сцену
+    // createPlane()
     createSea();
     // createPlane();
-    createSky();
+    sky.createSky();
 
     // цикл для обновления объектов
     loop();
@@ -299,4 +300,4 @@ function handleWindowResize() {
 }
 
 // ----------> запуск !
-window.addEventListener('load', startGame)
+window.addEventListener('load', init)
