@@ -143,8 +143,8 @@ function init() {
 
 function loop() {
     // Вращаем пропеллер, море и небо
-    sea.mesh.rotation.z += .05;
-    // sky.mesh.rotation.z += .01;
+    sea.mesh.rotation.z += .001;
+    sky.mesh.rotation.z += .0005;
     // airplane.propeller.rotation.x += 0.3;
 
     // рендерим сцену
