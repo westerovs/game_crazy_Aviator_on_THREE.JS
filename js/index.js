@@ -142,8 +142,8 @@ class Plane {
         this.createLights(); // добавление освещения сцены
         
         // добавление мешей на сцену
-        this._sea.createSea();
-        this._sky.createSky();
+        this._sea.init();
+        this._sky.init();
         
         this.loop(); // цикл для обновления объектов
         
