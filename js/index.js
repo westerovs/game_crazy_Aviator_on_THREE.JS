@@ -1,7 +1,3 @@
-import * as THREE from '../lib/three.js';
-import { COLORS } from './utils.js'
-import Sky from './sky.js'
-
 /*
     ИЕРАРХИЯ ОТОБРАЖЕНИЯ:
 
@@ -22,22 +18,25 @@ import Sky from './sky.js'
     Добавляем меш на нашу сцену
 */
 
+import * as THREE from '../lib/three.js';
+import { COLORS } from './utils.js'
+import Sky from './world/sky.js'
+import Sea from './world/sea.js'
+
 const world       = document.getElementById('fucking-world')
 const worldWidth  = world.offsetWidth
 const worldHeight = world.offsetHeight
 
-
 // ----------> 1 RENDER
 const renderer = new THREE.WebGLRenderer({
-    // Разрещить прозрачноть для сцены
+    // Разрешить прозрачность для сцены
     // чтобы видеть фон из CSS
     alpha: true,
-
+    
     // Активируем антиалиасинг. Это может повлечь проблемы с производительностью,
     // но наш проект основан на низкополигональных моделях, поэтому должно зайти как по маслу.
     antialias: true
 });
-
 
 // ----------> 2 CAMERA
 const fieldOfView = 60;
@@ -49,6 +48,8 @@ const camera      = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPl
 // ----------> 3 SCENE
 const scene = new THREE.Scene()
 const sky = new Sky(scene)
+const sea = new Sea(scene);
+
 
 // Сцена, камера и рендеринг
 function createScene() {
@@ -78,68 +79,16 @@ function createScene() {
     window.addEventListener('resize', handleWindowResize, false);
 }
 
-// ----------> 4 меш
-
-// ------------- море
-const Sea = function () {
-    // Создадим геометрию цилиндра
-    // верхний радиус, нижний радиус, высота, количество сегментов по окружности, количество сегментов по вертикали
-    const geom = new THREE.CylinderGeometry(600, 600, 800, 40, 10);
-
-    // повернем наш объект по оси x
-    geom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-
-    // создадим материал для нашего объекта
-    const mat = new THREE.MeshPhongMaterial({
-        color      : COLORS.blue,
-        transparent: true,
-        opacity    : 0.6,
-        shading    : THREE.FlatShading,
-    });
-
-    // Для создания объекта в Three.js, нам необходимо создать меш,
-    // который является совокупностью созданной ранее геометрии и материала
-    this.mesh = new THREE.Mesh(geom, mat);
-
-    // Разрешим морю отбрасывать тени
-    this.mesh.receiveShadow = true;
-}
-
-let sea;
-
-// Теперь мы инициализируем наше море и добавим его на сцену:
-function createSea() {
-    sea = new Sea();
-
-    // Подвинем объект в нижнюю часть нашей сцены
-    sea.mesh.position.y = -600;
-
-    // Добавим море меш на сцену
-    scene.add(sea.mesh);
-}
-
-
-
-
-
-
-
-
 // ----------> 5 управление
 function init() {
-    // настройка сцены, камеры и рендера
-    createScene();
-    // добавление освещения сцены
-    createLights();
+    createScene(); // настройка сцены, камеры и рендера
+    createLights(); // добавление освещения сцены
     
     // добавление мешей на сцену
-    // createPlane()
-    createSea();
-    // createPlane();
+    sea.createSea();
     sky.createSky();
 
-    // цикл для обновления объектов
-    loop();
+    loop(); // цикл для обновления объектов
 }
 
 function loop() {
@@ -153,7 +102,6 @@ function loop() {
 
     requestAnimationFrame(loop);
 }
-
 
 // ----------------- вспомогательные функции -----------------
 let hemisphereLight = null

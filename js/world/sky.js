@@ -1,8 +1,6 @@
-// Создадим объект неба
-import * as THREE from '../lib/three.js';
-import { COLORS } from './utils.js'
+import * as THREE from '../../lib/three.js';
+import { COLORS } from '../utils.js'
 
-// ------------- облака
 const Cloud = function () {
     // Создаем пустой контейнер, который будет содержать составные части облаков (кубы)
     this.mesh = new THREE.Object3D();
