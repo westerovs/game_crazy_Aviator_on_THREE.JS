@@ -47,9 +47,10 @@ class Plane {
         
         // 3 SCENE
         this.scene = new THREE.Scene()
-        this.sky   = new Sky(this.scene)
-        this.sea   = new Sea(this.scene);
+        this._sky  = new Sky(this.scene)
+        this._sea  = new Sea(this.scene);
         
+        // освещение
         this.hemisphereLight = null
         this.shadowLight     = null
     }
@@ -78,8 +79,8 @@ class Plane {
     
     loop = () => {
         // Вращаем пропеллер, море и небо
-        this.sea.mesh.rotation.z += .001;
-        this.sky.mesh.rotation.z += .0005;
+        this._sea.mesh.rotation.z += .001;
+        this._sky.mesh.rotation.z += .0005;
         // airplane.propeller.rotation.x += 0.3;
         
         // рендерим сцену
@@ -93,19 +94,19 @@ class Plane {
         // Полушарный свет - это градиентный свет
         // первый параметр это цвет неба, второй параметр - цвет земли,
         // третий параметр - интенсивность света
-        this.hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, .9)
+        this.hemisphereLight = new THREE.HemisphereLight(COLORS.sky, COLORS.land, .9)
         
         // Направленный свет светит в определенном направлении из точки,
         // это работает как солнце, что значит что продуцируемые лучи параллельны.
-        this.shadowLight = new THREE.DirectionalLight(0xffffff, .9);
+        this.shadowLight = new THREE.DirectionalLight(COLORS.sun, .9);
         
-        // Устанавливаем направление света
+        // направление света
         this.shadowLight.position.set(150, 350, 350);
         
-        // Разрешаем отбрасывание теней
+        // отбрасывание теней
         this.shadowLight.castShadow = true;
         
-        // Определяем видимую область теней
+        // видимая область теней
         this.shadowLight.shadow.camera.left   = -400;
         this.shadowLight.shadow.camera.right  = 400;
         this.shadowLight.shadow.camera.top    = 400;
@@ -113,19 +114,18 @@ class Plane {
         this.shadowLight.shadow.camera.near   = 1;
         this.shadowLight.shadow.camera.far    = 1000;
         
-        // Задайте разрешение теней,
-        // но имейте ввиду, чем оно больше, тем ниже производительность.
+        // разрешение теней
         this.shadowLight.shadow.mapSize.width  = 2048;
         this.shadowLight.shadow.mapSize.height = 2048;
         
-        // Добавляем наше освещение на сцену
+        // Добавить освещение на сцену
         this.scene.add(this.hemisphereLight);
         this.scene.add(this.shadowLight);
     }
     
-    // Отлавливаем событие изменения размера экрана,
-    // в котором мы запустим функцию handleWindowResize(), чтобы обновить камеру и рендер.
-    // перерисовывает canvas при измении размера окна, т.к размер окна может меняться
+    // Событие изменения размера экрана,
+    // в котором мы запускается функция handleWindowResize(), чтобы обновить камеру и рендер.
+    // перерисовывает canvas при изменении размера окна, т.к размер окна может меняться
     handleWindowResize = () => {
         console.log('+++ WindowResize +++')
         
@@ -142,8 +142,8 @@ class Plane {
         this.createLights(); // добавление освещения сцены
         
         // добавление мешей на сцену
-        this.sea.createSea();
-        this.sky.createSky();
+        this._sea.createSea();
+        this._sky.createSky();
         
         this.loop(); // цикл для обновления объектов
         
