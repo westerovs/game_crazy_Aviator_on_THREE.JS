@@ -21,8 +21,10 @@ import * as THREE from '../lib/three.js';
 import {COLORS} from './utils.js'
 import Sky from './world/sky.js'
 import Sea from './world/sea.js'
+import Jet from './jet/jet.js'
 
-class Plane {
+
+class Game {
     constructor() {
         this.world       = document.getElementById('fucking-world')
         this.worldWidth  = this.world.offsetWidth
@@ -47,8 +49,10 @@ class Plane {
         
         // 3 SCENE
         this.scene = new THREE.Scene()
+        
         this._sky  = new Sky(this.scene)
         this._sea  = new Sea(this.scene);
+        this._jet  = new Jet(this.scene);
         
         // освещение
         this.hemisphereLight = null
@@ -138,12 +142,13 @@ class Plane {
     }
     
     init = () => {
-        this.createScene(); // настройка сцены, камеры и рендера
+        this.createScene();  // настройка сцены, камеры и рендера
         this.createLights(); // добавление освещения сцены
         
         // добавление мешей на сцену
         this._sea.init();
         this._sky.init();
+        this._jet.init()
         
         this.loop(); // цикл для обновления объектов
         
@@ -151,5 +156,5 @@ class Plane {
     }
 }
 
-const plane = new Plane()
-window.addEventListener('load', plane.init)
+const game = new Game()
+window.addEventListener('load', game.init)

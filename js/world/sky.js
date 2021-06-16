@@ -21,7 +21,7 @@ const clouds = function() {
         // создадим меш путем клонирования куба циклом
         const m = new THREE.Mesh(geom, mat);
         
-        // зададим случайную позицию и ротацию какждому кубу
+        // зададим случайную позицию и ротацию каждому кубу
         m.position.x = i * 15;
         m.position.y = Math.random() * 10;
         m.position.z = Math.random() * 10;
