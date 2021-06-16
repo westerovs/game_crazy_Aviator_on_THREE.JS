@@ -86,6 +86,35 @@ export default class Jet {
         this.createBlade()
     }
     
+    normalize = (v, vmin, vmax, tmin, tmax) => {
+        let nv = Math.max(Math.min(v, vmax), vmin);
+        let dv = vmax - vmin;
+        let pc = (nv - vmin) / dv;
+        let dt = tmax - tmin;
+        let tv = tmin + (pc * dt);
+        
+        return tv;
+    }
+    
+    updatePlane = (mousePos) => {
+        // давайте двигать наш самолет в промежутке -100 и 100 по горизонтали
+        // и между 25 и 175 по вертикали,
+        // в зависимости от позиции курсора мыши, у которого разброс значений между -1 и 1 в обоих направлениях;
+        // чтобы добиться этого, мы используем функцию нормализации (ее вы можете увидеть чуть ниже этой)
+    
+        console.log('x: ', mousePos.x)
+        console.log('y: ', mousePos.x)
+        console.log(' ')
+        
+        const targetX = this.normalize(mousePos.x, -1, 1, -100, 100);
+        const targetY = this.normalize(mousePos.y, -1, 1, 25, 175);
+
+        // обновляем позицию нашего самолета
+        this.mesh.position.y = targetY;
+        this.mesh.position.x = targetX;
+        this.propeller.rotation.x += 0.3;
+    }
+    
     init = () => {
         console.log('--- create JET ---')
         

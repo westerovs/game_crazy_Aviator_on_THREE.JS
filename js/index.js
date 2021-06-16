@@ -146,10 +146,6 @@ class Game {
     }
     
     handleMouseMove = (event) => {
-        console.log('x: ', this.mousePos.x)
-        console.log('y: ', this.mousePos.x)
-        console.log(' ')
-    
         // конвертируем полученные значение положения мыши
         // в нормализованное значение между -1 и 1
         // вот формула для горизонтальной оси:
@@ -158,13 +154,14 @@ class Game {
         // для вертикальной оси нам необходимо инвертировать нашу формулу,
         // так как в 2D y-ось идет в противоположном направлении, в отличии от y-оси в 3D
     
-        let ty   = 1 - (event.clientY / this.worldHeight) * 2
+        let ty = 1 - (event.clientY / this.worldHeight) * 2
         this.mousePos = {
             x: tx,
             y: ty
         }
-    }
     
+        this._jet.updatePlane(this.mousePos)
+    }
     
     init = () => {
         this.createScene()  // настройка сцены, камеры и рендера
